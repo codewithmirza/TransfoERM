@@ -9,89 +9,71 @@ import { useVoiceCommands } from '@/lib/voice/VoiceCommandContext'
 import { Notifications } from './Notifications'
 
 interface TopNavProps {
-  onCommandOpen: () => void;
+  onCommandOpen: () => void
+  onSettingsOpen: () => void
 }
 
-export function TopNav({ onCommandOpen }: TopNavProps) {
-  const { isListening } = useVoiceCommands();
-  const [showNotifications, setShowNotifications] = useState(false);
+export function TopNav({ onCommandOpen, onSettingsOpen }: TopNavProps) {
+  const [showNotifications, setShowNotifications] = useState(false)
+  const { isListening, toggleListening } = useVoiceCommands()
 
   return (
-    <>
-      <div className="sticky top-0 z-30 h-16 px-6 flex items-center justify-between bg-black/40 backdrop-blur-xl border-b border-white/10">
-        {/* Left section - Command Trigger */}
-        <motion.button
-          whileHover={{ scale: 1.02 }}
+    <div className="sticky top-0 z-30 w-full border-b border-white/10 bg-black/40 backdrop-blur-xl">
+      <div className="flex h-16 items-center px-6">
+        {/* Search trigger */}
+        <Button
+          variant="ghost"
+          className="flex items-center gap-2 text-white/60 hover:text-white"
           onClick={onCommandOpen}
-          className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-lg",
-            "bg-white/5 border border-white/10",
-            "text-white/60 hover:text-white/80 transition-colors"
-          )}
         >
-          <Command className="w-4 h-4" />
-          <span>Command</span>
-          <kbd className="ml-2 text-xs bg-white/10 px-2 py-0.5 rounded">⌘K</kbd>
-        </motion.button>
+          <Search className="h-4 w-4" />
+          <span className="text-sm">Search...</span>
+          <kbd className="pointer-events-none ml-auto inline-flex h-5 select-none items-center gap-1 rounded border border-white/20 bg-white/5 px-1.5 text-[10px] font-medium text-white/40">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </Button>
 
-        {/* Right section - Actions */}
-        <div className="flex items-center gap-4">
-          {/* Voice Command */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
+        <div className="ml-auto flex items-center gap-2">
+          {/* Voice command button */}
+          <Button
+            variant="ghost"
+            size="icon"
             className={cn(
-              "p-2 rounded-lg border transition-all",
-              isListening 
-                ? "bg-red-500/20 border-red-500/40 text-red-400" 
-                : "bg-blue-500/10 border-blue-500/20 text-blue-400 hover:bg-blue-500/20"
+              "text-white/60 hover:text-white hover:bg-white/5",
+              isListening && "text-red-400 hover:text-red-400"
             )}
+            onClick={toggleListening}
           >
-            <Mic className="w-5 h-5" />
-          </motion.button>
+            <Mic className="h-5 w-5" />
+          </Button>
 
           {/* Notifications */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="relative"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white/60 hover:text-white hover:bg-white/5"
+            onClick={() => setShowNotifications(!showNotifications)}
           >
-            <button
-              onClick={() => setShowNotifications(!showNotifications)}
-              className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-all"
-            >
-              <Bell className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-[10px] font-medium text-white flex items-center justify-center">
-                4
-              </span>
-            </button>
-          </motion.div>
+            <Bell className="h-5 w-5" />
+          </Button>
 
           {/* Settings */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 hover:bg-blue-500/20 transition-all"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-white/60 hover:text-white hover:bg-white/5"
+            onClick={onSettingsOpen}
           >
-            <Settings className="w-5 h-5" />
-          </motion.button>
-
-          {/* User Profile */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="flex items-center gap-2 p-1.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 transition-all cursor-pointer"
-          >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
-              <span className="text-sm font-medium text-white">JD</span>
-            </div>
-          </motion.div>
+            <Settings className="h-5 w-5" />
+          </Button>
         </div>
       </div>
 
-      {/* Notifications Panel */}
       <AnimatePresence>
         {showNotifications && (
           <Notifications onClose={() => setShowNotifications(false)} />
         )}
       </AnimatePresence>
-    </>
+    </div>
   )
 }

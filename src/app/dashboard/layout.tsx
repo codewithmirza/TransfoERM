@@ -6,9 +6,13 @@ import { cn } from "@/lib/utils"
 import { useState, useEffect } from 'react'
 import { CommandInterface } from '@/components/command/CommandInterface'
 import { VoiceCommandProvider } from '@/lib/voice/VoiceCommandContext'
+import { Settings } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { SettingsDialog } from '@/components/settings/SettingsDialog'
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [showCommandInterface, setShowCommandInterface] = useState(false)
+  const [showSettings, setShowSettings] = useState(false)
 
   // Keyboard shortcut for command interface
   useEffect(() => {
@@ -41,7 +45,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           {/* Main content area */}
           <div className="flex-1 ml-80">
             {/* Top Navigation */}
-            <TopNav onCommandOpen={() => setShowCommandInterface(true)} />
+            <TopNav 
+              onCommandOpen={() => setShowCommandInterface(true)}
+              onSettingsOpen={() => setShowSettings(true)}
+            />
 
             {/* Main content */}
             <main className="relative p-6 overflow-x-hidden">
@@ -60,6 +67,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <CommandInterface 
           isOpen={showCommandInterface} 
           onClose={() => setShowCommandInterface(false)} 
+        />
+
+        <SettingsDialog 
+          open={showSettings} 
+          onOpenChange={setShowSettings}
         />
       </div>
     </VoiceCommandProvider>
