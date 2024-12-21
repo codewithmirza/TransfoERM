@@ -16,6 +16,9 @@ import {
   Settings,
   Lock,
   CheckCircle,
+  GitBranch,
+  Bot,
+  Shield,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -39,33 +42,33 @@ export default function HomePage() {
   const features = [
     {
       icon: Brain,
-      title: 'AI-Powered Insights',
-      description: 'Smart analytics and automated decision support for your business growth',
+      title: 'AI-Powered Automation',
+      description: 'Transform business processes with natural language commands and zero-code automation',
+    },
+    {
+      icon: Sparkles,
+      title: 'Intelligent Customization',
+      description: 'Dynamic solutions that evolve with your business through AI-driven adaptations',
+    },
+    {
+      icon: GitBranch,
+      title: 'Smart Workflows',
+      description: 'Self-healing workflows and AI-generated integrations for seamless operations',
+    },
+    {
+      icon: Bot,
+      title: 'NLP Command Center',
+      description: 'Control your entire system through natural language - text or voice',
     },
     {
       icon: Boxes,
-      title: 'Modular System',
-      description: 'Customize and scale with modules for Finance, HR, Inventory, and CRM',
+      title: 'Enterprise Integration',
+      description: 'Seamlessly connect with existing systems through AI-generated integrations',
     },
     {
-      icon: LineChart,
-      title: 'Real-time Analytics',
-      description: 'Live dashboards and reports with actionable business intelligence',
-    },
-    {
-      icon: Users2,
-      title: 'Team Collaboration',
-      description: 'Integrated tools for seamless team communication and workflow',
-    },
-    {
-      icon: Building2,
-      title: 'Enterprise Ready',
-      description: 'Scale with confidence using our enterprise-grade infrastructure',
-    },
-    {
-      icon: Laptop,
-      title: 'No-Code Platform',
-      description: 'Build custom workflows without any coding knowledge',
+      icon: Shield,
+      title: 'Intelligent Security',
+      description: 'Self-monitoring and automated security compliance for enterprise data',
     },
   ]
 
@@ -159,16 +162,16 @@ export default function HomePage() {
           <div className="inline-flex items-center gap-2 bg-teal-100/50 px-4 py-2 rounded-full mb-6">
             <Sparkles className="h-5 w-5 text-teal-600" />
             <span className="text-teal-800 font-medium">Next-Gen Enterprise Platform</span>
-          </div>
-          <h2 className="text-6xl font-bold mb-6 text-teal-900 leading-tight">
-            Transform Your Business
-            <br />
-            With Intelligent Automation
-          </h2>
-          <p className="text-xl mb-8 text-teal-700 max-w-3xl mx-auto">
-            Experience the future of business operations with our AI-powered platform. Streamline
-            workflows, boost productivity, and drive growth—all in one unified system.
-          </p>
+            </div>
+            <h2 className="text-6xl font-bold mb-6 text-teal-900 leading-tight">
+              Transform Your Enterprise
+              <br />
+              With AI-Powered Automation
+            </h2>
+            <p className="text-xl mb-8 text-teal-700 max-w-3xl mx-auto">
+              Revolutionize your business operations with zero-code automation and natural language controls. 
+              Say goodbye to rigid ERPs and hello to dynamic, AI-driven solutions.
+            </p>
           <div className="flex items-center justify-center gap-4">
             <Button
               size="lg"
@@ -190,20 +193,19 @@ export default function HomePage() {
 
         <section className="grid md:grid-cols-2 gap-16 items-center mb-16">
           <div className="animate-on-scroll">
-            <h3 className="text-3xl font-bold mb-4 text-teal-800">
-              Seamless Integration, Powerful Results
-            </h3>
-            <p className="text-lg mb-6 text-teal-700">
-              Our ERP system integrates seamlessly with your existing tools, providing a unified
-              platform for all your business needs. From finance to HR, inventory to analytics,
-              we've got you covered.
-            </p>
+          <h3 className="text-3xl font-bold mb-4 text-teal-800">
+                Enterprise-Grade Power, Consumer-Grade Simplicity
+              </h3>
+              <p className="text-lg mb-6 text-teal-700">
+                Experience the perfect balance of powerful features and intuitive design. 
+                Our platform adapts to your business needs while remaining remarkably easy to use.
+              </p>
             <ul className="space-y-2">
               {[
-                'Real-time data synchronization',
-                'Customizable dashboards',
-                'Mobile-friendly interface',
-                'Scalable architecture',
+                'Automated workflow orchestration',
+                  'Advanced security and compliance',
+                  'Real-time analytics and reporting',
+                  'Seamless third-party integrations',
               ].map((item, index) => (
                 <motion.li
                   key={index}
