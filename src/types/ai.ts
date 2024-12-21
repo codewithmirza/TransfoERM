@@ -1,6 +1,108 @@
 import type { ModuleType } from './modules'
 import type { TimeframeType } from './common'
 
+// Core AI Types
+export interface AIContext {
+  module: string
+  timestamp: string
+  user?: string
+  previousActions?: string[]
+  relevantData?: Record<string, any>
+  companyContext?: {
+    industry: string
+    size: string
+    region: string
+  }
+  filters?: Record<string, any>
+  timeframe?: TimeframeType
+}
+
+export interface BaseAIRequest {
+  prompt: string
+  context: AIContext
+  options?: {
+    temperature?: number
+    maxTokens?: number
+    model?: string
+    metadata?: Record<string, any>
+  }
+}
+
+// Knowledge Base Request Types
+export interface AIQueryRequest {
+  type: 'query'
+  content: string
+}
+
+export interface AIKnowledgeRequest {
+  type: 'add_knowledge'
+  content: string
+  metadata: Record<string, any>
+}
+
+export type KnowledgeRequest = AIQueryRequest | AIKnowledgeRequest
+
+export interface AIResponse<T = any> {
+  success: boolean
+  data: T
+  error?: string
+  metadata?: {
+    timestamp: number
+    processingTime: number
+    model: string
+  }
+}
+
+// Command-related Types
+export interface AICommandRequest {
+  command: string
+  userId?: string
+  context: AIContext
+  options?: BaseAIRequest['options']
+}
+
+export interface AICommandResponse {
+  success: boolean
+  result?: {
+    action?: string
+    module?: string
+    suggestions?: string[]
+    parameters?: Record<string, any>
+    metadata?: Record<string, any>
+  }
+  error?: string
+}
+
+export type AiCommandResult = {
+  action: string
+  module?: string
+  parameters?: Record<string, any>
+  suggestedResponse?: string
+}
+
+// Insight Types
+export interface AIInsight {
+  id: string
+  message: string
+  type: 'info' | 'warning' | 'success' | 'error'
+  timestamp: Date
+  source: string
+  confidence: number
+  metadata?: Record<string, any>
+}
+
+export interface AIAnalysisResult {
+  status: 'success' | 'error'
+  insights: AIInsight[]
+  confidence: number
+  metadata?: {
+    model?: string
+    processingTime?: number
+    tokens?: number
+  }
+}
+
+// Customization Types
 export interface CustomizationRequest {
   moduleType: ModuleType
   industry: string
@@ -26,17 +128,6 @@ export interface SecurityAnalysisResult {
     recommendation: string
   }>
   recommendations: string[]
-}
-
-export interface AIResponse<T = any> {
-  success: boolean
-  data: T
-  error?: string
-  metadata?: {
-    timestamp: number
-    processingTime: number
-    model: string
-  }
 }
 
 export interface Goal {
@@ -127,40 +218,11 @@ export interface TestCase {
   teardown?: string
 }
 
-export interface AIQueryRequest {
-  type: 'query'
-  content: string
-}
-
-export interface AIKnowledgeRequest {
-  type: 'add_knowledge'
-  content: string
-  metadata: Record<string, any>
-}
-
-export type AIRequest = AIQueryRequest | AIKnowledgeRequest
-
 export interface AIMetric {
   name: string
   value: number
   change?: number
   trend?: 'up' | 'down' | 'stable'
-}
-
-export interface AIAnalysisResult {
-  insights: AIInsight[]
-  trends: string[]
-  recommendations: AIRecommendation[]
-  alerts: string[]
-  confidence: number
-  type: ModuleType
-  timeframe: TimeframeType
-  metrics: string[]
-  metadata?: {
-    timestamp: string
-    source: string
-    model: string
-  }
 }
 
 export interface RAGResponse {
@@ -246,17 +308,6 @@ export interface Correlation {
   target: string;
   strength: number;
   type: string;
-}
-
-export interface AIInsight {
-  id: string
-  message: string
-  confidence: number
-  type: 'trend' | 'anomaly' | 'prediction'
-  timestamp?: string
-  isNew?: boolean
-  source?: string
-  metadata?: Record<string, any>
 }
 
 export interface AIRecommendation {
@@ -348,33 +399,4 @@ export interface CommandResponse {
     model: string
     confidence: number
   }
-}
-
-export interface AICommandRequest {
-  command: string
-  userId?: string
-  context?: {
-    module?: string
-    timeframe?: string
-    filters?: Record<string, any>
-  }
-}
-
-export interface AICommandResponse {
-  success: boolean
-  result?: {
-    action?: string
-    module?: string
-    suggestions?: string[]
-    parameters?: Record<string, any>
-    metadata?: Record<string, any>
-  }
-  error?: string
-}
-
-export type AiCommandResult = {
-  action: string
-  module?: string
-  parameters?: Record<string, any>
-  suggestedResponse?: string
 } 
