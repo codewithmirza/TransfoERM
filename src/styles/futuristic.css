@@ -1,0 +1,69 @@
+@layer components {
+  .neo-brutalism {
+    @apply relative overflow-hidden rounded-2xl border border-white/10
+           bg-gradient-to-br from-black/40 to-black/20
+           backdrop-blur-xl backdrop-saturate-150;
+    box-shadow: 
+      0 0 0 1px rgba(255, 255, 255, 0.1),
+      0 0 30px rgba(32, 156, 238, 0.2);
+  }
+
+  .cyber-panel {
+    @apply relative overflow-hidden
+           border border-white/10 bg-black/40
+           backdrop-blur-xl;
+    clip-path: polygon(
+      0 10px,
+      10px 0,
+      calc(100% - 10px) 0,
+      100% 10px,
+      100% calc(100% - 10px),
+      calc(100% - 10px) 100%,
+      10px 100%,
+      0 calc(100% - 10px)
+    );
+  }
+
+  .holographic-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r
+           from-cyan-400 via-blue-500 to-purple-600
+           animate-text-shimmer;
+  }
+
+  .neon-border {
+    @apply relative;
+    &::before {
+      content: '';
+      @apply absolute inset-0 rounded-xl
+             bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500
+             opacity-0 transition-opacity duration-300;
+    }
+    &:hover::before {
+      @apply opacity-100;
+    }
+  }
+
+  .tech-card {
+    @apply neo-brutalism hover:scale-[1.02] transition-all duration-300;
+    &::before {
+      content: '';
+      @apply absolute inset-0 bg-gradient-to-br
+             from-cyan-500/10 via-blue-500/10 to-purple-500/10
+             opacity-0 transition-opacity duration-300;
+    }
+    &:hover::before {
+      @apply opacity-100;
+    }
+  }
+}
+
+@keyframes text-shimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-text-shimmer {
+  animation: text-shimmer 3s infinite;
+  background-size: 200% 200%;
+} 

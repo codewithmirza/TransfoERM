@@ -1,0 +1,1 @@
+export { auth, getAuthConfig, type AuthConfig } from './config' 
