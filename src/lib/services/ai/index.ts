@@ -1,8 +1,7 @@
-import type { AIAnalysisResult, AIInsight, AIContext } from '@/types/ai'
+import { AIInsight, AIAnalysisResult, AIContext, AIRequest } from '@/types/ai'
 
 export class AIService {
-  private static instance: AIService | null = null
-  private constructor() {}
+  private static instance: AIService
 
   static getInstance(): AIService {
     if (!this.instance) {
@@ -11,75 +10,66 @@ export class AIService {
     return this.instance
   }
 
-  private createInsight(message: string, type: AIInsight['type'] = 'info'): AIInsight {
-    return {
-      id: crypto.randomUUID(),
-      message,
-      type,
-      timestamp: new Date(),
-      source: 'ai-service',
-      confidence: 0.8
+  async analyze(prompt: string, request: AIRequest): Promise<AIAnalysisResult> {
+    try {
+      // Mock implementation - replace with actual AI service call
+      return {
+        insights: [
+          {
+            id: crypto.randomUUID(),
+            message: 'Sample insight from analysis',
+            type: 'info',
+            confidence: 0.9,
+            timestamp: new Date(),
+            metadata: {
+              source: 'analysis'
+            }
+          }
+        ],
+        confidence: 0.9,
+        status: 'success',
+        metadata: {
+          processingTime: 1.2,
+          model: 'llama-2'
+        }
+      }
+    } catch (error) {
+      console.error('AI Analysis failed:', error)
+      return {
+        insights: [
+          {
+            id: crypto.randomUUID(),
+            message: 'Failed to analyze data',
+            type: 'error',
+            confidence: 0,
+            timestamp: new Date()
+          }
+        ],
+        confidence: 0,
+        status: 'error'
+      }
     }
   }
 
-  async generateInsights(module: string, data?: any): Promise<AIAnalysisResult> {
+  async generateInsights(module: string, data: any): Promise<AIAnalysisResult> {
     try {
-      const response = await fetch('https://transfoerm.manwaarullahb.workers.dev/api/ai/insights', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      const request: AIRequest = {
+        prompt: 'Generate insights',
+        context: {
+          timestamp: new Date(),
+          type: 'insight_generation',
           module,
           data,
-          timestamp: new Date().toISOString()
-        })
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to generate insights')
+          metadata: {
+            source: 'insight_generator'
+          }
+        }
       }
 
-      return await response.json()
+      return this.analyze(request.prompt, request)
     } catch (error) {
-      console.error('AI Service Error:', error)
-      return {
-        status: 'error',
-        insights: [
-          this.createInsight('Unable to generate insights at this time', 'error')
-        ],
-        confidence: 0
-      }
-    }
-  }
-
-  async analyze(prompt: string, context: AIContext): Promise<AIAnalysisResult> {
-    // Implementation coming in Phase 1
-    return {
-      status: 'success',
-      insights: [
-        this.createInsight('Analysis feature coming soon', 'info')
-      ],
-      confidence: 0.8,
-      metadata: {
-        model: 'cloudflare-ai',
-        processingTime: 0
-      }
-    }
-  }
-
-  async predict(data: any, options: any): Promise<AIAnalysisResult> {
-    // Implementation coming in Phase 2
-    return {
-      status: 'success',
-      insights: [
-        this.createInsight('Prediction feature coming soon', 'info')
-      ],
-      confidence: 0.8,
-      metadata: {
-        model: 'cloudflare-ai',
-        processingTime: 0
-      }
+      console.error('Failed to generate insights:', error)
+      throw error
     }
   }
 } 

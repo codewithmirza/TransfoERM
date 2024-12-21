@@ -3,21 +3,14 @@ import type { TimeframeType } from './common'
 
 // Core AI Types
 export interface AIContext {
-  module: string
-  timestamp: string
-  user?: string
-  previousActions?: string[]
-  relevantData?: Record<string, any>
-  companyContext?: {
-    industry: string
-    size: string
-    region: string
-  }
-  filters?: Record<string, any>
-  timeframe?: TimeframeType
+  timestamp: Date
+  type: string
+  module?: string
+  data?: any
+  metadata?: Record<string, any>
 }
 
-export interface BaseAIRequest {
+export interface AIRequest {
   prompt: string
   context: AIContext
   options?: {
@@ -46,11 +39,6 @@ export interface AIResponse<T = any> {
   success: boolean
   data: T
   error?: string
-  metadata?: {
-    timestamp: number
-    processingTime: number
-    model: string
-  }
 }
 
 // Command-related Types
@@ -58,7 +46,7 @@ export interface AICommandRequest {
   command: string
   userId?: string
   context: AIContext
-  options?: BaseAIRequest['options']
+  options?: AIRequest['options']
 }
 
 export interface AICommandResponse {
@@ -81,25 +69,22 @@ export type AiCommandResult = {
 }
 
 // Insight Types
+export type InsightType = 'general' | 'trend' | 'alert' | 'recommendation' | 'info' | 'error' | 'warning'
+
 export interface AIInsight {
-  id: string
+  id?: string
   message: string
-  type: 'info' | 'warning' | 'success' | 'error'
-  timestamp: Date
-  source: string
-  confidence: number
+  confidence?: number
+  type?: InsightType
+  timestamp?: Date
   metadata?: Record<string, any>
 }
 
 export interface AIAnalysisResult {
-  status: 'success' | 'error'
   insights: AIInsight[]
   confidence: number
-  metadata?: {
-    model?: string
-    processingTime?: number
-    tokens?: number
-  }
+  status?: 'success' | 'error'
+  metadata?: Record<string, any>
 }
 
 // Customization Types

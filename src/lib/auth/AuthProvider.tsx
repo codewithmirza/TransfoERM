@@ -10,28 +10,21 @@ import {
 } from 'firebase/auth'
 import { auth, db } from '@/lib/firebase'
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore'
-
-interface User extends FirebaseUser {
-  company?: string
-  designation?: string
-  industry?: string
-  companySize?: string
-  phone?: string
-}
+import { ExtendedUser, UserData } from '@/types/user'
 
 interface AuthContextType {
-  user: User | null
+  user: ExtendedUser | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<void>
   signUp: (email: string, password: string, data: any) => Promise<void>
   signOut: () => Promise<void>
-  updateProfile: (data: Partial<User>) => Promise<void>
+  updateProfile: (data: Partial<UserData>) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({} as AuthContextType)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<ExtendedUser | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -45,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setUser({
           ...firebaseUser,
           ...userData,
-        } as User)
+        } as ExtendedUser)
       } else {
         setUser(null)
       }
@@ -55,7 +48,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => unsubscribe()
   }, [])
 
-  const updateProfile = async (data: Partial<User>) => {
+  const updateProfile = async (data: Partial<UserData>) => {
     if (!user) throw new Error('No user logged in')
 
     // Update Firestore document
