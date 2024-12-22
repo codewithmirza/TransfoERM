@@ -19,6 +19,7 @@ import {
   GitBranch,
   Bot,
   Shield,
+  LucideIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,6 +31,12 @@ import { useToast } from '@/components/ui/use-toast'
 import Image from 'next/image'
 import { SignupForm } from '@/components/SignupForm'
 
+interface Feature {
+  icon: LucideIcon
+  title: string
+  description: string
+}
+
 export default function HomePage() {
   const [showForm, setShowForm] = useState(false)
   const [activeTab, setActiveTab] = useState('login')
@@ -39,7 +46,7 @@ export default function HomePage() {
   const { user, loading: authLoading, signIn, signUp } = useAuth()
   const { toast } = useToast()
 
-  const features = [
+  const features: Feature[] = [
     {
       icon: Brain,
       title: 'AI-Powered Automation',
@@ -72,11 +79,16 @@ export default function HomePage() {
     },
   ]
 
+  // Redirect authenticated users to dashboard
+  useEffect(() => {
+    if (user && !authLoading) {
+      router.push('/dashboard')
+    }
+  }, [user, authLoading, router])
+
   const scrollToForm = () => {
+    formRef.current?.scrollIntoView({ behavior: 'smooth' })
     setShowForm(true)
-    setTimeout(() => {
-      formRef.current?.scrollIntoView({ behavior: 'smooth' })
-    }, 100)
   }
 
   useEffect(() => {
@@ -124,6 +136,15 @@ export default function HomePage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // Show loading state in the return statement instead
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-teal-50 to-cyan-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-600"></div>
+      </div>
+    )
   }
 
   return (

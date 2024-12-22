@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
-import { getAuth } from 'firebase/auth'
-import { getFirestore } from 'firebase/firestore'
+import { getAuth, connectAuthEmulator } from 'firebase/auth'
+import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore'
 import { 
   loginWithEmail,
   signupWithEmail,
@@ -27,10 +27,23 @@ export const firebaseConfig = {
 }
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig)
+export const app = initializeApp(firebaseConfig)
 
 // Initialize Firebase Authentication and get a reference to the service
 export const auth = getAuth(app)
 
 // Initialize Cloud Firestore and get a reference to the service
-export const db = getFirestore(app) 
+export const db = getFirestore(app)
+
+// Enable offline persistence
+if (process.env.NODE_ENV === 'development') {
+  connectAuthEmulator(auth, 'http://localhost:9099')
+}
+
+enableIndexedDbPersistence(db).catch((err) => {
+  if (err.code === 'failed-precondition') {
+    console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.')
+  } else if (err.code === 'unimplemented') {
+    console.warn('The current browser does not support offline persistence')
+  }
+}) 
