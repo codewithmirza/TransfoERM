@@ -82,7 +82,20 @@ export interface CommandResponse {
   response: string
 }
 
-export interface AuthResponse extends APIResponse<{
-  user: User
-  token?: string
-}> {} 
+export interface ApiResponse<T = any> {
+  success: boolean
+  error?: string
+  data?: T
+}
+
+export interface AuthResponse extends ApiResponse {
+  data?: {
+    token: string
+    user: {
+      id: string
+      email: string
+      name: string
+      company?: string
+    }
+  }
+} 

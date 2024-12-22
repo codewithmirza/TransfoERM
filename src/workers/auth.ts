@@ -1,62 +1,203 @@
-import type { Env } from '../types/cloudflare'
-import { corsHeaders } from './cors'
+import { Env } from '@/types/cloudflare'
+import { nanoid } from 'nanoid'
+import { hash, compare } from 'bcryptjs'
+import { sign } from '@tsndr/cloudflare-worker-jwt'
+import { parseD1Result } from '@/lib/db/utils'
 
-export async function onRequest(context: { request: Request; env: Env }) {
-  const { request, env } = context
+interface SignupRequest {
+  email: string
+  password: string
+  name: string
+  company?: string
+}
 
-  if (request.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
-  }
+interface SigninRequest {
+  email: string
+  password: string
+}
+
+interface UserRow {
+  id: string
+  email: string
+  password: string
+  name: string
+  company?: string
+}
+
+export async function handleAuth(request: Request, env: Env): Promise<Response> {
+  const url = new URL(request.url)
+  const path = url.pathname.replace('/api/auth', '')
 
   try {
-    const { type, ...data } = await request.json()
+    // Signup Handler
+    if (path === '/signup' && request.method === 'POST') {
+      const { email, password, name, company } = await request.json() as SignupRequest
 
-    if (type === 'login') {
-      // Handle login
-      const user = await env.DB.prepare(
+      // Validate required fields
+      if (!email || !password || !name) {
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: 'Required fields are missing' 
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+
+      // Check if user exists
+      const existingUser = await env.DB.prepare(
         'SELECT * FROM users WHERE email = ?'
-      ).bind(data.email).first()
+      ).bind(email).first<UserRow>()
 
-      if (!user) {
-        throw new Error('User not found')
+      if (existingUser) {
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: 'Email already registered' 
+        }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' }
+        })
       }
 
-      return new Response(
-        JSON.stringify({ success: true, user }),
-        { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      // Create new user
+      const userId = nanoid()
+      const hashedPassword = await hash(password, 10)
+
+      await env.DB.prepare(
+        'INSERT INTO users (id, email, password, name, company) VALUES (?, ?, ?, ?, ?)'
+      ).bind(userId, email, hashedPassword, name, company).run()
+
+      // Generate JWT token with exp claim
+      const token = await sign(
+        { 
+          userId, 
+          email,
+          exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 days from now
+        }, 
+        env.JWT_SECRET
       )
+
+      return new Response(JSON.stringify({
+        success: true,
+        data: {
+          token,
+          user: {
+            id: userId,
+            email,
+            name,
+            company
+          }
+        }
+      }), {
+        status: 200,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        }
+      })
     }
 
-    if (type === 'signup') {
-      // Handle signup
-      const result = await env.DB.prepare(`
-        INSERT INTO users (id, email, name, company, created_at)
-        VALUES (?, ?, ?, ?, datetime('now'))
-      `).bind(
-        data.id,
-        data.email,
-        data.name,
-        data.company
-      ).run()
+    // Signin Handler
+    if (path === '/signin' && request.method === 'POST') {
+      const { email, password } = await request.json() as SigninRequest
 
-      if (!result.success) {
-        throw new Error('Failed to create user')
+      const stmt = env.DB.prepare('SELECT * FROM users WHERE email = ?')
+      const result = await stmt.bind(email).first()
+
+      const dbUser = parseD1Result<UserRow>(result)
+
+      if (!dbUser) {
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: 'Invalid credentials' 
+        }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        })
       }
 
-      return new Response(
-        JSON.stringify({ success: true }),
-        { headers: { 'Content-Type': 'application/json', ...corsHeaders } }
+      const user: UserRow = {
+        id: dbUser.id,
+        email: dbUser.email,
+        password: dbUser.password,
+        name: dbUser.name,
+        company: dbUser.company
+      }
+
+      if (!(await compare(password, user.password))) {
+        return new Response(JSON.stringify({ 
+          success: false,
+          error: 'Invalid credentials' 
+        }), {
+          status: 401,
+          headers: { 'Content-Type': 'application/json' }
+        })
+      }
+
+      // Generate JWT token with exp claim
+      const token = await sign(
+        { 
+          userId: user.id, 
+          email,
+          exp: Math.floor(Date.now() / 1000) + (7 * 24 * 60 * 60) // 7 days from now
+        }, 
+        env.JWT_SECRET
       )
+
+      return new Response(JSON.stringify({
+        success: true,
+        data: {
+          token,
+          user: {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            company: user.company
+          }
+        }
+      }), {
+        status: 200,
+        headers: { 
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        }
+      })
     }
 
-    throw new Error('Invalid auth type')
+    // Handle OPTIONS request for CORS
+    if (request.method === 'OPTIONS') {
+      return new Response(null, {
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        }
+      })
+    }
+
+    return new Response(JSON.stringify({ 
+      success: false,
+      error: 'Not found' 
+    }), {
+      status: 404,
+      headers: { 'Content-Type': 'application/json' }
+    })
+
   } catch (error) {
-    return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
-      { 
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders }
+    console.error('Auth error:', error)
+    return new Response(JSON.stringify({ 
+      success: false,
+      error: 'Internal server error' 
+    }), {
+      status: 500,
+      headers: { 
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*'
       }
-    )
+    })
   }
 } 

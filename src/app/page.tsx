@@ -126,6 +126,7 @@ export default function HomePage() {
         const company = formData.get('company') as string
         await signUp(email, password, { name, company })
       }
+      router.push('/dashboard')
     } catch (error) {
       console.error('Authentication error:', error)
       toast({

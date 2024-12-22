@@ -10,4 +10,15 @@ export interface UserData {
   phone: string | null
 }
 
-export interface ExtendedUser extends Omit<FirebaseUser, keyof UserData>, UserData {} 
+export interface ExtendedUser extends Omit<FirebaseUser, keyof UserData>, UserData {}
+
+export interface User {
+  id: string
+  email: string
+  name: string
+  company?: string
+  metadata?: {
+    apiQuota?: number
+    apiUsage?: number
+  }
+} 

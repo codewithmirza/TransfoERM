@@ -1,13 +1,20 @@
 'use client'
 
 import { useState, useEffect, createContext, useContext } from 'react'
-import { onAuthStateChanged, connectAuthEmulator, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
-import { auth } from '@/lib/firebase'
-import { AuthErrorHandler } from '@/lib/auth/AuthErrorHandler'
+import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/ui/use-toast'
+import { AuthResponse } from '@/types/api'
+import { API_URL } from '@/lib/config'
+
+interface User {
+  id: string
+  email: string
+  name: string
+  company?: string
+}
 
 interface AuthContextType {
-  user: any
+  user: User | null
   loading: boolean
   error: string | null
   signIn: (email: string, password: string) => Promise<void>
@@ -23,86 +30,96 @@ const AuthContext = createContext<AuthContextType>({
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any>(null)
+  const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
   const { toast } = useToast()
 
   const signIn = async (email: string, password: string) => {
     try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      setUser(userCredential.user)
+      console.log('Attempting to sign in to:', `${API_URL}/api/auth/signin`)
+      
+      const response = await fetch(`${API_URL}/api/auth/signin`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      })
+
+      console.log('Response status:', response.status)
+      const data = (await response.json()) as AuthResponse
+      console.log('Response data:', data)
+      
+      if (!data.success || !data.data) {
+        throw new Error(data.error || 'Failed to sign in')
+      }
+
+      localStorage.setItem('token', data.data.token)
+      setUser(data.data.user)
+      router.push('/dashboard')
     } catch (error) {
-      const errorMessage = AuthErrorHandler.handleFirebaseError(error)
-      throw new Error(errorMessage)
+      console.error('Detailed signin error:', error)
+      throw new Error(error instanceof Error ? error.message : 'Failed to sign in')
     }
   }
 
-  const signUp = async (email: string, password: string, data: any) => {
+  const signUp = async (email: string, password: string, userData: any) => {
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-      setUser(userCredential.user)
-      // Here you could also store additional user data in Firestore
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          password,
+          name: userData.name,
+          company: userData.company
+        })
+      })
+
+      const data = (await response.json()) as AuthResponse
+      
+      if (!data.success || !data.data) {
+        throw new Error(data.error || 'Failed to sign up')
+      }
+
+      localStorage.setItem('token', data.data.token)
+      setUser(data.data.user)
+      router.push('/dashboard')
     } catch (error) {
-      const errorMessage = AuthErrorHandler.handleFirebaseError(error)
-      throw new Error(errorMessage)
+      throw new Error(error instanceof Error ? error.message : 'Failed to sign up')
     }
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (user) => {
-        setUser(user)
-        setLoading(false)
-      },
-      (error) => {
-        const errorMessage = AuthErrorHandler.handleFirebaseError(error)
-        setError(errorMessage)
-        setLoading(false)
-        
-        toast({
-          title: 'Authentication Error',
-          description: errorMessage,
-          variant: 'destructive'
-        })
-      }
-    )
-
-    // Check online status
-    const handleOnline = () => {
-      setError(null)
-      if (process.env.NODE_ENV === 'development') {
-        connectAuthEmulator(auth, 'http://localhost:9099')
-      }
-    }
-
-    const handleOffline = () => {
-      setError('You are currently offline. Some features may be unavailable.')
-      toast({
-        title: 'Connection Lost',
-        description: 'You are offline. Please check your internet connection.',
-        variant: 'destructive'
+    const token = localStorage.getItem('token')
+    if (token) {
+      // Verify token and get user data
+      fetch('/api/auth/verify', {
+        headers: { Authorization: `Bearer ${token}` }
       })
+        .then(res => res.json())
+        .then((response: unknown) => {
+          const data = response as AuthResponse
+          if (data.success && data.data?.user) {
+            setUser(data.data.user)
+            router.push('/dashboard')
+          } else {
+            localStorage.removeItem('token')
+          }
+        })
+        .catch(() => {
+          localStorage.removeItem('token')
+        })
+        .finally(() => {
+          setLoading(false)
+        })
+    } else {
+      setLoading(false)
     }
-
-    window.addEventListener('online', handleOnline)
-    window.addEventListener('offline', handleOffline)
-
-    return () => {
-      unsubscribe()
-      window.removeEventListener('online', handleOnline)
-      window.removeEventListener('offline', handleOffline)
-    }
-  }, [])
+  }, [router])
 
   return (
     <AuthContext.Provider value={{ user, loading, error, signIn, signUp }}>
-      {error && (
-        <div className="bg-red-50 p-4 rounded-md mb-4">
-          <p className="text-red-800">{error}</p>
-        </div>
-      )}
       {children}
     </AuthContext.Provider>
   )

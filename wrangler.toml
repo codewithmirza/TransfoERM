@@ -1,16 +1,20 @@
-name = "transfoerm"
-main = "src/worker.ts"
-compatibility_date = "2024-11-21"
+name = "transfoerm-api"
+main = "src/workers/index.ts"
+compatibility_date = "2024-01-01"
 
-# Enable AI capabilities
-[ai]
-binding = "AI"
+[vars]
+JWT_SECRET = "XLnrveC7T0n_TUGuRgvf6iEzDw71pJAk9yOoglyh"
+
 
 # D1 Database
 [[d1_databases]]
 binding = "DB"
 database_name = "transfoerm-db"
-database_id = "b22459c0-3e05-4def-8f1b-86752343974f"
+database_id = "2ad2a7ea-48e4-4c41-b3ab-77281dc35659"
+
+# Enable AI capabilities
+[ai]
+binding = "AI"
 
 # KV for caching
 [[kv_namespaces]]
@@ -21,9 +25,6 @@ id = "efb1f6bb27b644598dfe4d32a32625b7"
 [[r2_buckets]]
 binding = "STORAGE"
 bucket_name = "transfoerm"
-
-[vars]
-ENVIRONMENT = "development"
 
 # Vectorize configuration
 [[vectorize]]
